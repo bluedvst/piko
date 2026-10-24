@@ -65,16 +65,47 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      # shared/ui 带 android target，AGP 配置期间就需要 Android SDK，否则连 iOS 任务都配置不出来
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      # shared/ui 带 android target，AGP 配置期间就需要 Android SDK，否则连 iOS 任务都配置不出来。
+      # macOS runner 镜像已自带 SDK，不再用 android-actions/setup-android：它内部跑
+      # `sdkmanager --licenses` 时在无 tty 环境下退出码 1，会把整个 job 直接打死（首跑就是这样挂的）。
+      - name: Locate Android SDK
+        run: |
+          set -o pipefail
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}"
+          if [ ! -d "$SDK" ]; then
+            echo "::error::找不到 Android SDK：$SDK"
+            exit 1
+          fi
+          {
+            echo "ANDROID_SDK_ROOT=$SDK"
+            echo "ANDROID_HOME=$SDK"
+            echo "SDKMANAGER=$SDK/cmdline-tools/latest/bin/sdkmanager"
+          } >> "$GITHUB_ENV"
+          echo "SDK=$SDK"
+          ls "$SDK"
+          ls "$SDK/platforms" 2>/dev/null || echo "no platforms dir yet"
+
+      - name: Accept Android SDK licenses
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          SM="$SDKMANAGER"
+          [ -x "$SM" ] || SM="$(ls -d "$ANDROID_SDK_ROOT"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | tail -1)"
+          echo "using $SM"
+          yes | "$SM" --licenses > "$RUNNER_TEMP/licenses.log" 2>&1 || true
+          tail -5 "$RUNNER_TEMP/licenses.log" || true
 
       - name: Install Android platform for compileSdk 37
         continue-on-error: true
         run: |
           set -o pipefail
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager --install "platforms;android-37" "build-tools;37.0.0" 2>&1 | tail -20 || echo "warning: android-37 装不上，交给 Gradle 报缺哪个平台"
+          SM="$SDKMANAGER"
+          [ -x "$SM" ] || SM="$(ls -d "$ANDROID_SDK_ROOT"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | tail -1)"
+          "$SM" --install "platforms;android-37" "build-tools;37.0.0" > "$RUNNER_TEMP/sdk-install.log" 2>&1 || {
+            echo "::warning::android-37 装不上，沿用镜像自带平台"
+            tail -20 "$RUNNER_TEMP/sdk-install.log" || true
+          }
+          "$SM" --list_installed 2>/dev/null | sed -n '1,40p' || ls "$ANDROID_SDK_ROOT/platforms"
 
       - name: Install XcodeGen
         run: |
