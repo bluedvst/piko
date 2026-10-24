@@ -9,7 +9,7 @@ import dev.piko.shared.download.PikoDownloadCoordinator
 import dev.piko.shared.download.createIosDownloadStorage
 import dev.piko.shared.media.IosClipCache
 import dev.piko.shared.media.PikoMediaRepository
-import dev.piko.shared.net.createIosAuxiliaryHttpClient
+import dev.piko.shared.network.createIosAuxiliaryHttpClient
 import dev.piko.shared.preferences.createIosPreferences
 import dev.piko.shared.scrape.MetaTubeService
 import dev.piko.shared.storage.IosAppDirectories

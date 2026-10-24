@@ -22,8 +22,10 @@ import dev.piko.ui.theme.PikoMotionScale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.writeString
 import platform.Foundation.NSBundle
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSFileSystemFreeSize
@@ -39,6 +41,7 @@ import platform.UIKit.UIDocumentPickerMode
 import platform.UIKit.UIDocumentPickerViewController
 import platform.UIKit.UIPasteboard
 import platform.UIKit.UIViewController
+import platform.UIKit.popoverPresentationController
 import platform.darwin.NSObject
 
 /**
@@ -180,8 +183,8 @@ class IosPikoPlatform(
         override fun rememberFilesLauncher(onPicked: (List<String>) -> Unit): () -> Unit {
             val scope = rememberCoroutineScope()
             val delegate = remember(onPicked) { IosDocumentPickerDelegate(onPicked) }
-            return {
-                val host = topViewController() ?: return@rememberFilesLauncher
+            return presentFiles@{
+                val host = topViewController() ?: return@presentFiles
                 val picker = UIDocumentPickerViewController(
                     documentTypes = listOf("public.item"),
                     inMode = UIDocumentPickerMode.UIDocumentPickerModeImport,
@@ -199,8 +202,8 @@ class IosPikoPlatform(
         override fun rememberFolderLauncher(onPicked: (String) -> Unit): () -> Unit {
             val scope = rememberCoroutineScope()
             val delegate = remember(onPicked) { IosFolderPickerDelegate(onPicked) }
-            return {
-                val host = topViewController() ?: return@rememberFolderLauncher
+            return presentFolder@{
+                val host = topViewController() ?: return@presentFolder
                 // 选文件夹只能用 Open 模式（public.folder），Import 模式只对文件有效
                 val picker = UIDocumentPickerViewController(
                     documentTypes = listOf("public.folder"),

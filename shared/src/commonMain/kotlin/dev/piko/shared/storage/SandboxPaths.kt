@@ -1,7 +1,7 @@
 package dev.piko.shared.storage
 
 /** Lexical POSIX path handling for app-owned iOS directories, not a symlink/security boundary. */
-internal object SandboxPaths {
+object SandboxPaths {
     fun relativeDirectory(root: String, requested: String): String {
         val base = absoluteSegments(root)
         require(base.isNotEmpty()) { "An app-owned directory is required" }
