@@ -88,6 +88,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import dev.piko.shared.log.PikoLog
 import dev.piko.shared.log.logFailure
+import dev.piko.shared.util.putIfAbsentCompat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -582,9 +583,9 @@ open class PikoDriveRepository(
                 val gcidKey = "${entry.gcid.uppercase()}:${entry.size}"
                 val fileId = entry.restoredFileId
                 if (!fileId.isNullOrEmpty()) {
-                    byFileId.putIfAbsent("$gcidKey|id:$fileId", index to entry)
+                    byFileId.putIfAbsentCompat("$gcidKey|id:$fileId", index to entry)
                 }
-                byName.putIfAbsent("$gcidKey|name:${entry.name}", index to entry)
+                byName.putIfAbsentCompat("$gcidKey|name:${entry.name}", index to entry)
             }
             real.map { file ->
                 if (file.isFolder) return@map file

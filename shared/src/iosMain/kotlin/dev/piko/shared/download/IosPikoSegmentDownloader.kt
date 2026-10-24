@@ -13,20 +13,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.cinterop.CValue
-import kotlinx.cinterop.NSErrorException
-import platform.AVFoundation.AVAssetExportPresetPassthrough
-import platform.AVFoundation.AVAssetExportSession
-import platform.AVFoundation.AVAssetExportSessionStatusCancelled
-import platform.AVFoundation.AVAssetExportSessionStatusCompleted
-import platform.AVFoundation.AVFileTypeMPEG4
-import platform.AVFoundation.AVURLAsset
-import platform.CoreMedia.CMTimeMakeWithSeconds
-import platform.CoreMedia.CMTimeRange
-import platform.CoreMedia.CMTimeRangeMake
-import platform.Foundation.NSFileManager
-import platform.Foundation.NSFileSize
-import platform.Foundation.NSNumber
-import platform.Foundation.NSURL
+import platform.AVFoundation.*
+import platform.CoreMedia.*
+import platform.Foundation.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -96,7 +85,7 @@ class IosPikoSegmentDownloader : PikoSegmentDownloader {
                             status == AVAssetExportSessionStatusCompleted -> continuation.resume(Unit)
                             status == AVAssetExportSessionStatusCancelled -> continuation.resumeWithException(CancellationException("导出已取消"))
                             else -> continuation.resumeWithException(
-                                session.error?.let { NSErrorException(it) } ?: IllegalStateException("导出失败，状态 $status"),
+                                IllegalStateException("导出失败，状态 $status：${session.error?.localizedDescription}"),
                             )
                         }
                     }

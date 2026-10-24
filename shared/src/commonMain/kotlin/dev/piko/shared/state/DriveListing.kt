@@ -19,6 +19,7 @@ import dev.piko.shared.naming.distinctFiles
 import dev.piko.shared.naming.toFileKind
 import dev.piko.shared.naming.versionsOfPrimary
 import dev.piko.shared.naming.workKeyOf
+import dev.piko.shared.util.putIfAbsentCompat
 import io.github.nihildigit.pikpak.FileStat
 
 /** 解析结果面板里的一行，如「分区」「SP」。 */
@@ -416,7 +417,7 @@ fun buildDriveItems(
         !attachments && (block.id == OTHERS_BLOCK_ID || block.fileIds.size <= FLAT_BLOCK_MAX || untitled)
     }
     val positionById = HashMap<String, Int>(files.size * 2)
-    files.forEachIndexed { index, file -> positionById.putIfAbsent(file.id, index) }
+    files.forEachIndexed { index, file -> positionById.putIfAbsentCompat(file.id, index) }
     val flatIds = flat.flatMap { it.fileIds }.sortedBy { id -> positionById[id] ?: -1 }
     val flatWorks = flat.filter { it.id != OTHERS_BLOCK_ID }.flatMap { it.fileIds }.toSet()
     val blocks = grouped + listOfNotNull(secondaryBlock)

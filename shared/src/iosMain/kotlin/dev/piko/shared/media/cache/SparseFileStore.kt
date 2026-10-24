@@ -178,7 +178,7 @@ internal class IosSparseFileStore(
             for (range in ranges) {
                 if (range.isEmpty()) continue
                 val start = maxOf(0L, range.first)
-                val end = minOf(size - 1, range.last)
+                val end = minOf(this@IosSparseFileStore.size - 1, range.last)
                 if (start > end) continue
                 var run = -1L
                 for (index in (start / BLOCK_BYTES).toInt()..(end / BLOCK_BYTES).toInt()) {
@@ -392,7 +392,8 @@ private fun fileLength(fd: Int): Long = lseek(fd, 0, SEEK_END).also {
     checkIo(it >= 0, "Cache length query failed")
 }
 private fun parentOf(path: String): String = path.substringBeforeLast('/', ".").ifEmpty { "/" }
-private fun canonical(path: String): String = NSURL.fileURLWithPath(path).URLByResolvingSymlinksInPath.path ?: path
+private fun canonical(path: String): String =
+    NSURL.fileURLWithPath(path).URLByResolvingSymlinksInPath?.path ?: path
 private fun ensureParent(path: String) {
     checkIo(NSFileManager.defaultManager.createDirectoryAtPath(parentOf(path), true, null, null), "Creating cache directory failed")
 }

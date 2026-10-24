@@ -11,15 +11,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import platform.Foundation.NSData
-import platform.Foundation.NSDate
-import platform.Foundation.NSFileManager
-import platform.Foundation.NSFileModificationDate
-import platform.Foundation.NSFileSize
-import platform.Foundation.NSFileType
-import platform.Foundation.NSFileTypeDirectory
-import platform.Foundation.NSNumber
-import platform.Foundation.create
+import platform.Foundation.*
 import platform.posix.memcpy
 
 /**
@@ -148,7 +140,7 @@ class IosClipCache(
         val temp = "$path.tmp"
         val data = bytes.toNSData()
         // atomically: true 由系统改名替到位；先写临时名只是为了半路失败时不留垃圾
-        check(data.writeToFile(temp, atomically = true)) { "写入缓存文件失败" }
+        check(files.createFileAtPath(temp, data, null)) { "写入缓存文件失败" }
         files.removeItemAtPath(path, error = null)
         check(files.moveItemAtPath(temp, path, error = null)) { "替换缓存文件失败" }
     }
