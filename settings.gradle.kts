@@ -14,7 +14,8 @@ pluginManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
+    // 1.0+ uses the Gradle 9 JvmVendorSpec API (IBM_SEMERU was removed).
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
 dependencyResolutionManagement {

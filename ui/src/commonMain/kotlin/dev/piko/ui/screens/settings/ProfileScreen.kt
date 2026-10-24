@@ -92,11 +92,9 @@ import dev.piko.ui.components.toReadableSize
 import dev.piko.ui.navigation.Screen
 import io.github.nihildigit.pikpak.CountQuota
 import io.github.nihildigit.pikpak.TransferAllowances
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
-import java.util.Locale
+import dev.piko.ui.format.dailyQuotaResetLabel as formatDailyQuotaResetLabel
+import dev.piko.ui.format.formatOffsetDate
+import dev.piko.ui.format.monthlyQuotaResetLabel
 import kotlinx.coroutines.launch
 import dev.piko.shared.data.SavedAccount
 import androidx.compose.ui.unit.Dp
@@ -417,7 +415,7 @@ internal fun Avatar(username: String?, avatarUrl: String?, size: Dp = AvatarSize
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = username?.take(1)?.uppercase(Locale.getDefault()) ?: "P",
+                text = username?.take(1)?.uppercase() ?: "P",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
@@ -679,26 +677,15 @@ private fun UsageTile(usage: Usage, modifier: Modifier = Modifier) {
 /**
  * 距下一次月度重置还有几天（每月 1 日 0 点，新加坡时间；接口不返回）。写天数不写日期：看额度时
  * 要掂量的是「还能撑几天」，日期还得自己再减一次。按新加坡的日历日算，月末最后一天是「1 天后」。
- * minSdk 26 起自带 java.time，不必再引入 kotlinx-datetime。
  */
-private fun transferQuotaResetLabel(): String {
-    val today = OffsetDateTime.now(ZoneOffset.ofHours(8)).toLocalDate()
-    val reset = today.plusMonths(1).withDayOfMonth(1)
-    return "${ChronoUnit.DAYS.between(today, reset)} 天后重置"
-}
+private fun transferQuotaResetLabel(): String = monthlyQuotaResetLabel()
 
-/** 距下一次每日重置（新加坡时间 0 点）还有几小时，不足 1 小时写「1 小时内」。 */
-private fun dailyQuotaResetLabel(): String {
-    val now = OffsetDateTime.now(ZoneOffset.ofHours(8))
-    val hours = ChronoUnit.HOURS.between(now, now.toLocalDate().plusDays(1).atStartOfDay().atOffset(now.offset))
-    return if (hours < 1) "1 小时内重置" else "$hours 小时后重置"
-}
+/** 距新加坡时间午夜的整小时数，不足一小时单独提示。 */
+private fun dailyQuotaResetLabel(): String = formatDailyQuotaResetLabel()
 
 /** 非会员时 [TransferAllowances.expireTime] 为空字符串，解析失败也一并按「没有」处理。 */
 private fun formatExpireDate(expireTime: String): String? {
     if (expireTime.isBlank()) return null
-    return runCatching {
-        OffsetDateTime.parse(expireTime).format(DateTimeFormatter.ofPattern("yyyy 年 M 月 d 日", Locale.getDefault()))
-    }.getOrNull()
+    return formatOffsetDate(expireTime, includeYear = true)
 }
 

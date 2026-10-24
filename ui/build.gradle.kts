@@ -17,6 +17,12 @@ kotlin {
         minSdk = 26
     }
     jvm("desktop")
+    listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
+        target.binaries.framework {
+            baseName = "PikoKit"
+            isStatic = true
+        }
+    }
 
     sourceSets {
         all {
@@ -51,12 +57,20 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
         // CMP 的 material3 在 Android 上重定向到 androidx 的构件，版本比 app 用的 BOM 旧；
         // 这里对齐到同一份 BOM，ui 模块编译时看到的就是 app 运行时的那套 API
         androidMain.dependencies {
             implementation(project.dependencies.platform(libs.androidx.compose.bom))
             implementation(libs.androidx.navigation3.ui)
             implementation(libs.androidx.adaptive.navigation3)
+        }
+        // Native 不使用 JVM ServiceLoader/OkHttp，显式装配 Ktor 3 fetcher。
+        iosMain.dependencies {
+            implementation(libs.ktor.client.core)
+            implementation(libs.coil.network.ktor3)
         }
         // 只测纯函数的规则（命令栏显隐这类 internal 的），界面行为的测试在 desktopApp
         val desktopTest by getting {

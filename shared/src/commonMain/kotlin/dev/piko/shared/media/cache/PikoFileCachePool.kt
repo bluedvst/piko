@@ -9,6 +9,7 @@ import io.github.nihildigit.pikpak.fileCache
 import io.github.nihildigit.pikpak.fileHandle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
