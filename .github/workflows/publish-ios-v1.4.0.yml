@@ -1,0 +1,48 @@
+name: Publish iOS v1.4.0
+
+on:
+  push:
+    branches: ["codex/ios-v1.4.0-debug"]
+    paths: [".github/workflows/publish-ios-v1.4.0.yml"]
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'ci: publish iOS v1.4.0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download verified build
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: 13210411920
+          run-id: 41590585703
+          github-token: ${{ github.token }}
+          path: dist
+      - name: Verify and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GH_REPO" = "bluedvst/piko"
+          printf '%s  %s\n' 50659cc9f3bd7ee267c03aad6785490c44152242b36779e1e633e66d090ec5c2 dist/Piko-unsigned.ipa | sha256sum --check
+          mv dist/Piko-unsigned.ipa dist/Piko-1.4.0-iOS-external-player-Debug-unsigned.ipa
+          cat > release-notes.md <<'NOTES'
+          基于上游 Piko v1.4.0 的 iOS 移植版本。
+
+          - 支持 iOS 16 及以上，修复应用图标与目录名称解析导致的闪退。
+          - 使用应用内系统播放器；视频操作菜单支持 SenPlayer、Rex、VLC 和 Outplayer 外部播放入口。ddPlayer 可通过复制链接播放。
+          - 外部播放器跳转尚需在安装了相应应用的真机上验证；播放直链可能过期。
+          - 附件为 **Debug 未签名 IPA**，需要使用 LCSign 等工具签名安装。
+          - iOS 模拟器测试、Android 和桌面测试以及 IPA 构建已通过。
+          - SHA-256：`50659cc9f3bd7ee267c03aad6785490c44152242b36779e1e633e66d090ec5c2`
+          
+          源码：`1fa17e4598167be3513eb21813b3178af8d24606`；[构建记录](https://github.com/bluedvst/piko/actions/runs/41590585703)。
+          NOTES
+          gh release create ios-v1.4.0 dist/Piko-1.4.0-iOS-external-player-Debug-unsigned.ipa --target 1fa17e4598167be3513eb21813b3178af8d24606 --title "Piko iOS v1.4.0" --notes-file release-notes.md --draft --prerelease
+          gh release edit ios-v1.4.0 --draft=false
