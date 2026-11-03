@@ -29,6 +29,7 @@ on:
   push:
     branches:
       - "codex/ios-v1.4.0"
+      - "codex/ios-v1.4.0-debug"
     tags:
       - "ios-v*"
 
@@ -48,7 +49,7 @@ jobs:
       PIKO_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       PIKO_BUNDLE_ID: ${{ secrets.APPLE_BUNDLE_ID }}
       HAS_SIGNING: ${{ secrets.APPLE_TEAM_ID != '' && secrets.APPLE_CERT_P12_BASE64 != '' }}
-      CONFIGURATION_NAME: ${{ github.event.inputs.configuration || 'Release' }}
+      CONFIGURATION_NAME: ${{ github.event.inputs.configuration || (github.ref_name == 'codex/ios-v1.4.0-debug' && 'Debug') || 'Release' }}
       EXPORT_METHOD: ${{ github.event.inputs.export_method || 'ad-hoc' }}
       PIKO_SKIP_KOTLIN_BUILD: "NO"
       GRADLE_OPTS: "-Dorg.gradle.daemon=false"
